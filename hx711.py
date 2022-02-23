@@ -6,8 +6,8 @@ import RPi.GPIO as GPIO
 
 class HX711:
     def __init__(self, dout=5, pd_sck=6, gain=128, bitsToRead=24):
-        self.PD_SCK = pd_sck
-        self.DOUT = dout
+        self._PD_SCK = pd_sck
+        self._DOUT = dout
 
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
@@ -16,16 +16,119 @@ class HX711:
 
         # The value returned by the hx711 that corresponds to your
         # reference unit AFTER dividing by the SCALE.
-        self.REFERENCE_UNIT = 1
+        self._REFERENCE_UNIT = 1
 
-        self.GAIN = 0
-        self.OFFSET = 1
-        self.lastVal = 0
-        self.bitsToRead = bitsToRead
-        self.twosComplementThreshold = 1 << (bitsToRead-1)
-        self.twosComplementOffset = -(1 << (bitsToRead))
+        self._GAIN = 0
+        self._OFFSET = 1
+        self._lastVal = 0
+        self._bitsToRead = bitsToRead
+        self._twosComplementThreshold = 1 << (bitsToRead-1)
+        self._twosComplementOffset = -(1 << (bitsToRead))
         self.setGain(gain)
         self.read()
+
+    ### define property start ###
+
+    def PD_SCK():
+        doc = "The PD_SCK property."
+        def fget(self):
+            return self._PD_SCK
+        def fset(self, value):
+            self._PD_SCK = value
+        def fdel(self):
+            del self._PD_SCK
+        return locals()
+    PD_SCK = property(**PD_SCK())
+
+    def DOUT():
+        doc = "The DOUT property."
+        def fget(self):
+            return self._DOUT
+        def fset(self, value):
+            self._DOUT = value
+        def fdel(self):
+            del self._DOUT
+        return locals()
+    DOUT = property(**DOUT())
+
+    def REFERENCE_UNIT():
+        doc = "The REFERENCE_UNIT property."
+        def fget(self):
+            return self._REFERENCE_UNIT
+        def fset(self, value):
+            self._REFERENCE_UNIT = value
+        def fdel(self):
+            del self._REFERENCE_UNIT
+        return locals()
+    REFERENCE_UNIT = property(**REFERENCE_UNIT())
+
+    def GAIN():
+        doc = "The GAIN property."
+        def fget(self):
+            return self._GAIN
+        def fset(self, value):
+            self._GAIN = value
+        def fdel(self):
+            del self._GAIN
+        return locals()
+    GAIN = property(**GAIN())
+
+    def OFFSET():
+        doc = "The OFFSET property."
+        def fget(self):
+            return self._OFFSET
+        def fset(self, value):
+            self._OFFSET = value
+        def fdel(self):
+            del self._OFFSET
+        return locals()
+    OFFSET = property(**OFFSET())
+
+    def lastVal():
+        doc = "The lastVal property."
+        def fget(self):
+            return self._lastVal
+        def fset(self, value):
+            self._lastVal = value
+        def fdel(self):
+            del self._lastVal
+        return locals()
+    lastVal = property(**lastVal())
+
+    def bitsToRead():
+        doc = "The bitsToRead property."
+        def fget(self):
+            return self._bitsToRead
+        def fset(self, value):
+            self._bitsToRead = value
+        def fdel(self):
+            del self._bitsToRead
+        return locals()
+    bitsToRead = property(**bitsToRead())
+
+    def twosComplementThreshold():
+        doc = "The twosComplementThreshold property."
+        def fget(self):
+            return self._twosComplementThreshold
+        def fset(self, value):
+            self._twosComplementThreshold = value
+        def fdel(self):
+            del self._twosComplementThreshold
+        return locals()
+    twosComplementThreshold = property(**twosComplementThreshold())
+
+    def twosComplementOffset():
+        doc = "The twosComplementOffset property."
+        def fget(self):
+            return self._twosComplementOffset
+        def fset(self, value):
+            self._twosComplementOffset = value
+        def fdel(self):
+            del self._twosComplementOffset
+        return locals()
+    twosComplementOffset = property(**twosComplementOffset())
+
+    ### define property end ###
 
     def isReady(self):
         return GPIO.input(self.DOUT) == 0
@@ -52,6 +155,9 @@ class HX711:
             return unsignedValue
 
     def read(self):
+        # hx711モジュールの出力の仕様に関連すると思われる。
+        # 内部でACDがAD変換した値が、バッファに入ってるとかそんなとこでは？
+        # そんで24bitの値を、CLKに応じて1bitずつ吐き出してきて、それは2の補数になってるから、こっちで解釈し直してやる。
         self.waitForReady()
 
         unsignedValue = 0
@@ -62,6 +168,8 @@ class HX711:
             unsignedValue = unsignedValue << 1
             unsignedValue = unsignedValue | bitValue
 
+        # 多分これもhx711の仕様に対応したコード
+        # ほしいゲインの回数だけCLKのONOFF切り替わりがあると設定されるみたいな。
         # set channel and gain factor for next reading
         for i in range(self.GAIN):
             GPIO.output(self.PD_SCK, True)
@@ -86,12 +194,13 @@ class HX711:
         values = sorted([self.read() for i in range(times)])[cut:-cut]
         offset = statistics.mean(values)
 
-        self.setOffset(offset)
+        # self.setOffset(offset)
 
         self.setReferenceUnit(reference_unit)
 
     def setOffset(self, offset):
         self.OFFSET = offset
+
 
     def setReferenceUnit(self, reference_unit):
         self.REFERENCE_UNIT = reference_unit
