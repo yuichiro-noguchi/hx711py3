@@ -187,7 +187,8 @@ class HX711:
 
     def tare(self, times=25):
         reference_unit = self.REFERENCE_UNIT
-        self.setReferenceUnit(1)
+        # self.setReferenceUnit(1)
+        self.REFERENCE_UNIT = 1
 
         # remove spikes
         cut = times//5
@@ -195,15 +196,17 @@ class HX711:
         offset = statistics.mean(values)
 
         # self.setOffset(offset)
-
-        self.setReferenceUnit(reference_unit)
-
-    def setOffset(self, offset):
         self.OFFSET = offset
 
-
-    def setReferenceUnit(self, reference_unit):
+        # self.setReferenceUnit(reference_unit)
         self.REFERENCE_UNIT = reference_unit
+
+    # def setOffset(self, offset):
+    #     self.OFFSET = offset
+    #
+    #
+    # def setReferenceUnit(self, reference_unit):
+    #     self.REFERENCE_UNIT = reference_unit
 
     # HX711 datasheet states that setting the PDA_CLOCK pin on high
     # for a more than 60 microseconds would power off the chip.

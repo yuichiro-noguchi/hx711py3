@@ -21,7 +21,7 @@ hx.tare()
 while True:
     try:
         val = hx.getWeight()
-        print("{0: 4.4f}".format(val))
+        print("{0: 4.1f}".format(val))
 
     except (KeyboardInterrupt, SystemExit):
         GPIO.cleanup()
